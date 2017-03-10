@@ -16,6 +16,7 @@ type alias Model =
   , keyboardState : Keyboard.Extra.State
   , clock : Time
   , animation : Animation
+  , animations : List(Time -> Animation)
   }
 
 type alias Point = (Int, Int)
@@ -36,6 +37,7 @@ initialModel =
       , keyboardState = keyboardState
       , clock = 0
       , animation = static 0
+      , animations = []
       }
     , Cmd.none
     )
@@ -72,9 +74,37 @@ shakeAnimation : Time -> Animation
 shakeAnimation t =
   animation t
     |> from 0
-    |> to 360
-    |> duration (500 * Time.millisecond)
+    |> to 40
+    |> duration (200 * Time.millisecond)
 
+shakeAnimation_ : Time -> Animation
+shakeAnimation_ t =
+  animation t
+    |> from 40
+    |> to -20
+    |> duration (200 * Time.millisecond)
+
+shakeAnimation__ : Time -> Animation
+shakeAnimation__ t =
+  animation t
+    |> from -20
+    |> to 10
+    |> duration (200 * Time.millisecond)
+
+shakeAnimation___ : Time -> Animation
+shakeAnimation___ t =
+  animation t
+    |> from 10
+    |> to 0
+    |> duration (200 * Time.millisecond)
+
+animations : List ( Time -> Animation )
+animations =
+  [ shakeAnimation
+  , shakeAnimation_
+  , shakeAnimation__
+  , shakeAnimation___
+  ]
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -97,14 +127,25 @@ update msg model =
         newX = model.x + x
         newY = model.y + y
         newClock = model.clock + dt
-        (newPoints, newAnimation) =
-          case (model.animation == (static 0)) of
+        (newPoints, newAnimation, newAnimations) =
+          case (isDone model.clock model.animation) of
             True ->
-              (model.points, model.animation)
+              let
+                nextAnimation =
+                  case List.head model.animations of
+                    Just animation -> animation model.clock
+                    Nothing -> static 0
+                nextAnimations = (List.tail model.animations) |> Maybe.withDefault([])
+                justFinished =
+                  nextAnimation == (static 0) &&
+                  not (model.animation == (static 0))
+                nextPoints = case justFinished of
+                  True -> []
+                  False -> model.points
+              in
+                (nextPoints, nextAnimation, nextAnimations)
             False ->
-              case (isDone model.clock model.animation) of
-                True -> ([], (static 0))
-                False -> (model.points, model.animation)
+              (model.points, model.animation, model.animations)
 
         newPoints_ =
           case (x, y) of
@@ -116,6 +157,7 @@ update msg model =
           | points = newPoints_
           , clock = newClock
           , animation = newAnimation
+          , animations = newAnimations
           }
       in
         case (x, y) of
@@ -125,7 +167,7 @@ update msg model =
             { model_ | x = newX, y = newY } ! []
     Shake ->
       { model
-      | animation = shakeAnimation model.clock
+      | animations = animations
       } ! []
 
 main : Program Never Model Msg
