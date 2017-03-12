@@ -13,6 +13,7 @@ type alias Model =
   { points : List Point
   , x : Int
   , y : Int
+  , color : Color
   , keyboardState : Keyboard.Extra.State
   , clock : Time
   , animation : Animation
@@ -25,6 +26,7 @@ type Msg
   = KeyboardExtraMsg Keyboard.Extra.Msg
   | Tick Time
   | Shake
+  | ChangeColor Color
 
 initialModel : ( Model, Cmd Msg )
 initialModel =
@@ -35,6 +37,7 @@ initialModel =
       , x = 0
       , y = 0
       , keyboardState = keyboardState
+      , color = red
       , clock = 0
       , animation = static 0
       , animations = []
@@ -49,13 +52,19 @@ view model =
   in
     div []
       [ collage 800 600
-          [ rotate (degrees angle) (drawLine model.points) ]
+          [ rotate (degrees angle) (drawLine model.points model.color) ]
           |> Element.toHtml
       , shakeButton
+      , div []
+        [ Html.text "Line Color: "
+        , colorButton red "Red"
+        , colorButton blue "Blue"
+        , colorButton green "Green"
+        ]
       ]
 
-drawLine : List Point -> Form
-drawLine points =
+drawLine : List Point -> Color -> Form
+drawLine points color =
   let
     intsToFloats : (Int, Int) -> (Float, Float)
     intsToFloats (x, y) =
@@ -64,7 +73,11 @@ drawLine points =
     shape = path (List.map intsToFloats points)
   in
     shape
-    |> traced (solid red)
+    |> traced (solid color)
+
+colorButton : Color -> String -> Html Msg
+colorButton color name =
+  Html.button [ onClick (ChangeColor color) ] [ Html.text name ]
 
 shakeButton : Html Msg
 shakeButton =
@@ -169,6 +182,8 @@ update msg model =
       { model
       | animations = animations
       } ! []
+    ChangeColor color ->
+      { model | color = color } ! []
 
 main : Program Never Model Msg
 main =
