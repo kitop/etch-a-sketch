@@ -72,13 +72,13 @@ view model =
                     |> Element.toHtml
                 ]
             , div [ class "controls" ]
-                [ div [ class "control-left" ] [ shakeButton ]
-                , div [ class "control-right" ]
+                [ div [ class "control-left" ]
                     [ Html.text "Line Color: "
                     , colorButton red "Red"
                     , colorButton blue "Blue"
                     , colorButton green "Green"
                     ]
+                , div [ class "control-right" ] [ shakeButton ]
                 ]
             ]
 
@@ -104,7 +104,7 @@ colorButton color name =
 
 shakeButton : Html Msg
 shakeButton =
-    Html.button [ onClick Shake ] [ Html.text "Shake it good!" ]
+    Html.button [ onClick Shake ] [ Html.text "Clear" ]
 
 
 shakeAnimation : Time -> Animation
