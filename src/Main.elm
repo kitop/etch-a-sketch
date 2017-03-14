@@ -9,6 +9,7 @@ import Time exposing (Time, second)
 import AnimationFrame
 import Animation exposing (..)
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
 
@@ -60,17 +61,24 @@ view model =
         angle =
             animate model.clock model.animation
     in
-        div []
-            [ collage 800
-                600
-                [ rotate (degrees angle) (drawLine model.points model.color) ]
-                |> Element.toHtml
-            , shakeButton
-            , div []
-                [ Html.text "Line Color: "
-                , colorButton red "Red"
-                , colorButton blue "Blue"
-                , colorButton green "Green"
+        div [ class "etch-a-sketch" ]
+            [ h1 [] [ Html.text "Etch-A-Sketch" ]
+            , div [ class "instructions" ]
+                [ Html.text "Use the arrow keys to draw something" ]
+            , div [ class "artboard" ]
+                [ collage 600
+                    400
+                    [ rotate (degrees angle) (drawLine model.points model.color) ]
+                    |> Element.toHtml
+                ]
+            , div [ class "controls" ]
+                [ div [ class "control-left" ] [ shakeButton ]
+                , div [ class "control-right" ]
+                    [ Html.text "Line Color: "
+                    , colorButton red "Red"
+                    , colorButton blue "Blue"
+                    , colorButton green "Green"
+                    ]
                 ]
             ]
 
